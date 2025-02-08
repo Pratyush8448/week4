@@ -1,13 +1,14 @@
 name: Daily Commit
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual trigger
   schedule:
     - cron: '0 0 * * *'  # Runs daily at midnight UTC
 
 jobs:
   commit:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,5 +22,11 @@ jobs:
         run: |
           echo "Automated commit on $(date)" >> daily-log.txt
           git add .
-          git commit -m "Daily automated commit"
-          git push
+          git commit -m "Daily automated commit" || echo "No changes to commit"
+
+      - name: Push changes
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/YOUR_USERNAME/YOUR_REPO.git
+          git push origin main
